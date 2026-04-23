@@ -10,13 +10,16 @@ const Pets = () => {
     const fetchRequests = async () => {
       try {
         const response = await fetch('http://localhost:4000/approvedPets')
-        if (!response.ok) {
-          throw new Error('An error occurred')
-        }
         const data = await response.json()
-        setPetsData(data)
+        if (response.ok) {
+          setPetsData(data)
+        } else {
+          console.log('Error fetching pets:', data.error)
+          setPetsData([])
+        }
       } catch (error) {
-        console.log(error)
+        console.log('Fetch error:', error)
+        setPetsData([])
       } finally {
         setLoading(false)
       }

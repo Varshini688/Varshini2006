@@ -4,8 +4,12 @@ const path = require('path');
 
 const postPetRequest = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
     const { name, age, area, justification, email, phone, type } = req.body;
-    const { filename } = req.file;
+    const filename = req.file.filename;
 
     const pet = await Pet.create({
       name,
@@ -21,6 +25,7 @@ const postPetRequest = async (req, res) => {
 
     res.status(200).json(pet);
   } catch (error) {
+    console.error('Error in postPetRequest:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -44,11 +49,7 @@ const approveRequest = async (req, res) => {
 const allPets = async (reqStatus, req, res) => {
   try {
     const data = await Pet.find({ status: reqStatus }).sort({ updatedAt: -1 });
-    if (data.length > 0) {
-      res.status(200).json(data);
-    } else {
-      res.status(404).json({ error: 'No data found' });
-    }
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
