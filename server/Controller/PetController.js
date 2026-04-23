@@ -2,6 +2,34 @@ const Pet = require('../Model/PetModel');
 const fs = require('fs');
 const path = require('path');
 
+const buildGalleryPets = () => {
+  const imagesDir = path.join(__dirname, '../images');
+
+  if (!fs.existsSync(imagesDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(imagesDir).map((filename) => {
+    const filePath = path.join(imagesDir, filename);
+    const fileStats = fs.statSync(filePath);
+    const name = path.parse(filename).name;
+
+    return {
+      _id: filename,
+      name,
+      age: 'Unknown',
+      area: 'Available for adoption',
+      justification: 'Pet image available in the gallery.',
+      email: '',
+      phone: '',
+      type: 'Unknown',
+      filename,
+      status: 'Approved',
+      updatedAt: fileStats.mtime,
+    };
+  });
+};
+
 const postPetRequest = async (req, res) => {
   try {
     if (!req.file) {
@@ -49,6 +77,11 @@ const approveRequest = async (req, res) => {
 const allPets = async (reqStatus, req, res) => {
   try {
     const data = await Pet.find({ status: reqStatus }).sort({ updatedAt: -1 });
+
+    if (reqStatus === 'Approved' && req.query.gallery === 'true' && data.length === 0) {
+      return res.status(200).json(buildGalleryPets());
+    }
+
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -12,14 +12,29 @@ const Pets = () => {
         const response = await fetch('http://localhost:4000/approvedPets')
         const data = await response.json()
         if (response.ok) {
-          setPetsData(data)
+          if (data.length > 0) {
+            setPetsData(data)
+          } else {
+            const galleryResponse = await fetch('http://localhost:4000/approvedPets?gallery=true')
+            const galleryData = await galleryResponse.json()
+            setPetsData(galleryResponse.ok ? galleryData : [])
+          }
         } else {
           console.log('Error fetching pets:', data.error)
-          setPetsData([])
+          const galleryResponse = await fetch('http://localhost:4000/approvedPets?gallery=true')
+          const galleryData = await galleryResponse.json()
+          setPetsData(galleryResponse.ok ? galleryData : [])
         }
       } catch (error) {
         console.log('Fetch error:', error)
-        setPetsData([])
+        try {
+          const galleryResponse = await fetch('http://localhost:4000/approvedPets?gallery=true')
+          const galleryData = await galleryResponse.json()
+          setPetsData(galleryResponse.ok ? galleryData : [])
+        } catch (galleryError) {
+          console.log('Gallery fetch error:', galleryError)
+          setPetsData([])
+        }
       } finally {
         setLoading(false)
       }
